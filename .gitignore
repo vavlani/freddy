@@ -1,0 +1,6 @@
+.aider*
+# Ignore config.py to avoid committing API keys
+config.py
+# Ignore data_config.json to avoid committing sensitive data
+data_config.json
+./data/*

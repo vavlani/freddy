@@ -1,0 +1,108 @@
+name,group_id,notes,created,popularity,series_count
+census,src,Census,2012-02-27 10:18:19-06,86,238098
+bls,src,Bureau of Labor Statistics,2012-02-27 10:18:19-06,87,175006
+realtor.com,src,,2020-03-24 11:15:04-05,68,90390
+frb stl,src,St. Louis Fed,2012-02-27 10:18:19-06,70,78208
+bea,src,Bureau of Economic Analysis,2012-02-27 10:18:19-06,78,78074
+oecd,src,Org. for Economic Co-operation and Development,2012-02-27 10:18:19-06,72,64000
+frb,src,Board of Governors,2012-02-27 10:18:19-06,78,60674
+world bank,src,,2012-02-27 10:18:19-06,70,16966
+imf,src,International Monetary Fund,2012-02-27 10:18:19-06,66,14682
+eurostat,src,Statistical Office of the European Communities,2012-08-02 10:13:50-05,51,7882
+bis,src,Bank for International Settlements,2013-06-03 14:31:44-05,56,7378
+upenn,src,Univ. of Pennsylvania,2012-08-24 08:56:09-05,48,5942
+eia,src,Energy Information Administration,2012-02-27 10:18:19-06,45,5192
+"university of california, davis",src,,2014-03-24 15:02:59-05,53,4580
+university of groningen,src,,2013-07-22 11:48:28-05,53,4580
+frb ny,src,New York Fed,2014-03-25 10:30:11-05,48,3492
+equifax,src,,2017-01-31 08:56:03-06,38,3200
+ffiec,src,Federal Financial Institutions Examination Council,2012-02-27 10:18:19-06,37,3066
+fhfa,src,Federal Housing Finance Agency,2012-02-27 10:18:19-06,60,3006
+nber,src,National Bureau of Economic Research,2012-02-27 10:18:19-06,54,2990
+federal bureau of investigation,src,,2017-01-31 11:59:41-06,35,2896
+frb dal,src,Dallas Fed,2013-12-27 15:18:38-06,34,1906
+indeed,src,,2020-10-27 12:41:29-05,42,886
+"bloom, nick",src,,2014-11-17 13:39:05-06,42,664
+"ahir, hites",src,,2020-05-14 16:40:06-05,31,564
+"furceri, davide",src,,2020-05-14 16:41:03-05,31,564
+hud,src,Housing and Urban Development,2012-02-27 10:18:19-06,48,548
+frb phi,src,Philadelphia Fed,2012-02-27 10:18:19-06,41,508
+eta,src,Employment and Training Administration,2012-02-27 10:18:19-06,42,390
+fdic,src,Federal Deposit Insurance Corporation,2012-10-09 14:26:29-05,44,346
+u.s. treasury,src,US Treasury,2016-11-29 14:20:02-06,41,340
+freddie mac,src,Freddie Mac,2012-02-27 10:18:19-06,27,276
+bts,src,Bureau of Transportation Statistics,2014-10-30 09:54:38-05,36,222
+irs,src,Internal Revenue Service,2013-03-26 16:20:57-05,23,202
+baml,src,BofA Merrill Lynch,2012-02-27 10:18:19-06,51,190
+"ice data indices, llc",src,,2020-03-05 11:05:33-06,51,190
+s&p dow jones indices llc,src,,2013-08-01 15:44:12-05,49,168
+frb atl,src,Atlanta Fed,2014-02-21 13:42:55-06,41,146
+boe,src,Bank of England,2013-02-25 16:21:19-06,41,134
+credability,src,CredAbility Nonprofit Credit Counseling & Education,2012-08-30 13:53:26-05,7,134
+haver,src,Haver Analytics,2012-02-27 10:18:19-06,30,130
+adp,src,"Automatic Data Processing, Inc.",2012-02-27 10:18:19-06,27,126
+"baker, scott r.",src,,2014-11-17 13:38:38-06,37,100
+"davis, stephen j.",src,,2014-11-17 13:39:36-06,37,100
+center for financial stability,src,,2021-02-03 15:37:48-06,20,94
+frb chi,src,Chicago Fed,2012-02-27 10:18:19-06,34,88
+dj,src,Dow Jones & Company,2012-02-27 10:18:19-06,34,74
+frb clev,src,Cleveland Fed,2014-01-24 17:10:02-06,39,64
+dol,src,Department of Labor,2015-06-23 14:52:46-05,45,58
+zillow,src,,2022-01-05 16:32:58-06,26,58
+us. federal open market committee,src,Federal Open Market Committee,2014-06-18 10:21:12-05,36,54
+nar,src,National Assoc. of Realtors,2012-02-27 10:18:19-06,35,50
+nyt,src,New York Times,2012-02-27 10:18:19-06,22,48
+"davis, lance e.",src,,2019-10-30 11:23:36-05,-8,30
+"stettler, h. louis",src,,2019-10-30 11:25:25-05,-8,30
+cboe,src,Chicago Board Options Exchange,2012-02-27 10:18:19-06,33,28
+u.s. treasury: bureau of the fiscal service,src,US Treasury: Fiscal Service,2014-03-24 13:14:48-05,27,28
+"anderson, richard g.",src,,2014-11-17 13:34:12-06,14,26
+"jones, barry e.",src,,2014-11-17 13:34:36-06,14,26
+omb,src,Office of Management and Budget,2012-02-27 10:18:19-06,37,26
+anderson & jones,src,Richard Anderson and Barry Jones,2013-06-21 10:22:49-05,11,24
+snb,src,Swiss National Bank,2012-02-27 10:18:19-06,11,24
+fms,src,U.S. Treasury: Financial Management Service,2012-02-27 10:18:19-06,32,20
+"aaronson, daniel",src,,2021-06-14 16:48:46-05,3,18
+"baker, bloom & davis",src,"Scott Baker, Nicholas Bloom and Steven J. Davis",2013-06-05 09:51:23-05,24,18
+"hartley, daniel",src,,2021-06-14 16:49:48-05,3,18
+"mazumder, bhashkar",src,,2021-06-14 16:51:44-05,3,18
+cao,src,JP. Cabinet Office,2013-02-25 15:56:38-06,22,16
+indiana university: indiana business research center,src,,2022-09-19 11:08:26-05,19,14
+optimal blue,src,,2020-07-08 17:04:12-05,30,14
+"dwyer, g.p., jr.",src,,2013-01-30 11:06:30-06,-9,12
+"gerald p. dwyer, jr., r.w. hafer, and warren e. weber",src,,2014-03-18 15:39:28-05,-9,12
+"hafer, r.w.",src,,2013-01-30 11:06:56-06,-9,12
+american financial exchange,src,,2022-02-16 14:46:28-06,25,10
+ecb,src,European Central Bank,2013-02-25 16:32:48-06,28,10
+riccardo dicecio,src,Riccardo DiCecio,2013-12-10 16:21:14-06,6,10
+boj,src,Bank of Japan,2012-02-27 10:18:19-06,14,8
+conference of state bank supervisors,src,,2022-08-26 15:45:51-05,10,8
+moody's,src,Moody's Investors Service,2012-02-27 10:18:19-06,29,8
+serena ng,src,,2023-07-06 09:45:22-05,4,8
+sydney c. ludvigson,src,,2023-07-06 09:44:56-05,4,8
+visa,src,,2024-06-12 13:53:17-05,0,8
+"andrew davidson & co., inc.",src,,2021-05-17 09:49:20-05,15,6
+coinbase,src,,2018-06-18 09:46:27-05,17,6
+kyle jurado,src,,2023-07-06 09:44:07-05,2,6
+cbo,src,Congressional Budget Office,2012-02-27 10:18:19-06,24,4
+frb kc,src,Kansas City Fed,2012-02-27 10:18:19-06,17,4
+frb sf,src,San Francisco Fed,2014-02-21 13:40:50-06,2,4
+"hamilton, james",src,,2016-02-11 09:58:41-06,17,4
+s&p,src,S&P,2012-02-27 10:18:19-06,16,4
+bank of italy,src,,2014-11-17 13:53:48-06,-31,2
+bundesbank,src,,2012-02-27 10:18:19-06,-29,2
+cass,src,"Cass Information Systems, Inc.",2013-06-11 09:10:40-05,13,2
+cea,src,Council of Economic Advisers,2012-02-27 10:18:19-06,20,2
+claudia sahm,src,,2019-09-27 11:07:16-05,18,2
+fhwa,src,Federal Highway Administration,2012-05-02 16:29:50-05,20,2
+frb rich,src,Richmond Fed,2015-12-16 10:58:57-06,-9,2
+"lewis, daniel j.",src,,2020-12-07 08:06:03-06,10,2
+"ma, sai",src,,2023-08-03 16:38:39-05,-13,2
+"mertens, karel",src,,2020-12-07 08:06:20-06,10,2
+nasdaq omx group,src,,2014-05-19 15:19:35-05,17,2
+nikkei inc.,src,Nikkei Inc.,2013-08-07 09:02:47-05,9,2
+rba,src,Reserve Bank of Australia,2012-02-27 10:18:19-06,-12,2
+richard anderson and barry jones,src,,2013-06-21 10:21:30-05,-52,2
+sai ma,src,,2023-08-08 10:10:44-05,-13,2
+"stock, james h.",src,,2020-04-20 12:42:28-05,10,2
+umich,src,Univ. of Michigan,2012-02-27 10:18:19-06,20,2

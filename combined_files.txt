@@ -1,0 +1,936 @@
+./fred_data_downloader.py
+import pandas as pd
+import requests
+import os
+import json
+import logging
+from config import FRED_API_KEY
+
+SERIES_INFO_FOLDER = 'data/series_info'
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def fetch_series_info(series_id):
+    """
+    Fetch metadata for a given series ID from the FRED API.
+    """
+    series_info_path = os.path.join(SERIES_INFO_FOLDER, f"{series_id}.json")
+    
+    if os.path.exists(series_info_path):
+        logging.info(f"Loading metadata for series_id: {series_id} from local file: {series_info_path}")
+        with open(series_info_path, 'r') as file:
+            series_info = json.load(file)
+    else:
+        url = f"https://api.stlouisfed.org/fred/series?series_id={series_id}&api_key={FRED_API_KEY}&file_type=json"
+        url = f"https://api.stlouisfed.org/fred/series?series_id={series_id}&api_key={FRED_API_KEY}&file_type=json"
+        logging.info(f"Fetching metadata for series_id: {series_id} from FRED API: {url}")
+        url = f"https://api.stlouisfed.org/fred/series?series_id={series_id}&api_key={FRED_API_KEY}&file_type=json"
+        response = requests.get(url)
+        data = response.json()
+        series_info = data['seriess'][0]
+        
+        if not os.path.exists(SERIES_INFO_FOLDER):
+            os.makedirs(SERIES_INFO_FOLDER)
+        
+        with open(series_info_path, 'w') as file:
+            json.dump(series_info, file)
+    
+    return series_info
+
+def fetch_series_tags(series_id):
+    """
+    Fetch tags for a given series ID from the FRED API.
+    """
+    tags_folder = 'data/series_tags'
+    tags_file_path = os.path.join(tags_folder, f"{series_id}.json")
+    
+    if os.path.exists(tags_file_path):
+        logging.info(f"Loading tags for series_id: {series_id} from local file: {tags_file_path}")
+        with open(tags_file_path, 'r') as file:
+            tags = json.load(file)
+    else:
+        url = f"https://api.stlouisfed.org/fred/series/tags?series_id={series_id}&api_key={FRED_API_KEY}&file_type=json"
+        url = f"https://api.stlouisfed.org/fred/series/tags?series_id={series_id}&api_key={FRED_API_KEY}&file_type=json"
+        logging.info(f"Fetching tags for series_id: {series_id} from FRED API: {url}")
+        url = f"https://api.stlouisfed.org/fred/series/tags?series_id={series_id}&api_key={FRED_API_KEY}&file_type=json"
+        response = requests.get(url)
+        tags = response.json()
+        
+        if not os.path.exists(tags_folder):
+            os.makedirs(tags_folder)
+        
+        with open(tags_file_path, 'w') as file:
+            json.dump(tags, file)
+    
+    return tags
+
+
+def fetch_fred_data(series_id, start_date, end_date, series_info):
+    """
+    Fetch data from the FRED API for a given series ID and date range.
+    """
+    url = f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_API_KEY}&file_type=json&observation_start={start_date}&observation_end={end_date}"
+    url = f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_API_KEY}&file_type=json&observation_start={start_date}&observation_end={end_date}"
+    logging.info(f"Fetching data for series_id: {series_id} from {start_date} to {end_date} using URL: {url}")
+    url = f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_API_KEY}&file_type=json&observation_start={start_date}&observation_end={end_date}"
+    response = requests.get(url)
+    data = response.json()
+    df = pd.DataFrame(data['observations'])
+    
+    # Add series info as additional columns
+    for key, value in series_info.items():
+        df[key] = value
+    
+    return df
+
+
+
+def save_data_to_csv(df, series_id, data_folder='data'):
+    """
+    Save the DataFrame to a CSV file in the specified data folder.
+    
+    Parameters:
+    df (pd.DataFrame): DataFrame to save.
+    series_id (str): Series ID for naming the file.
+    data_folder (str): Folder to save the CSV file in.
+    """
+    if not os.path.exists(data_folder):
+        os.makedirs(data_folder)
+    file_path = os.path.join(data_folder, f"{series_id}.csv")
+    logging.info(f"Saving data to file: {file_path}")
+    df.to_csv(file_path, index=False)
+
+def load_config(config_file='./data_config.json'):
+    """
+    Load the configuration from a JSON file.
+    """
+    logging.info(f"Loading configuration from file: {config_file}")
+    with open(config_file, 'r') as file:
+        return json.load(file)
+
+def download_all_data(config_file='data_config.json'):
+    """
+    Download all data specified in the configuration file.
+    """
+    config = load_config(config_file)
+    logging.debug(config)
+    for series in config['series']:
+        series_id = series['series_id']
+        logging.info(f"Checking and processing series: {series_id}")
+        
+        # Fetch series metadata
+        series_info = fetch_series_info(series_id)
+        logging.info(f"Series Info: Title: {series_info['title']}, Frequency: {series_info['frequency']}, Units: {series_info['units']}, Seasonal Adjustment: {series_info['seasonal_adjustment']}, Last Updated: {series_info['last_updated']}")
+        series_id = series['series_id']
+        start_date = series['start_date']
+        end_date = series['end_date']
+        df = fetch_fred_data(series_id, start_date, end_date)
+        save_data_to_csv(df, series_id, data_folder='data')
+    logging.info("All data downloaded successfully.")
+
+if __name__ == '__main__':
+    download_all_data(config_file='data_config.json')
+
+
+./fetch_series_with_offset.py
+import os
+import time
+import requests
+import pandas as pd
+import logging
+from config import FRED_API_KEY
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def fetch_series_with_offset(tag_source_name, limit=1000):
+    """
+    Fetch series for a given source from the FRED API using offset and store them in separate CSV files.
+    
+    Parameters:
+    tag_source_name (str): The name of the source.
+    limit (int): The maximum number of series to fetch per API call.
+    """
+    logging.info(f"Starting to fetch series for source: {tag_source_name}")
+    offset = 0
+    series_list = []
+    
+    while True:
+        url = f"https://api.stlouisfed.org/fred/tags/series?tag_names={tag_source_name}&api_key={FRED_API_KEY}&file_type=json&limit={limit}&offset={offset}"
+        logging.info(f"Requesting URL: {url}")
+        response = requests.get(url)
+        logging.info(f"Received response with status code: {response.status_code}")
+        data = response.json()
+        new_series = data.get('seriess', [])
+        
+        if not new_series:
+            logging.info("No more series to fetch, exiting loop.")
+            break
+        
+        series_list.extend(new_series)
+        offset += limit
+        # time.sleep(0.1)  # Sleep to avoid hitting API rate limits
+    
+    source_folder = os.path.join('data', 'series', 'source', tag_source_name)
+    if not os.path.exists(source_folder):
+        os.makedirs(source_folder)
+    
+    logging.info(f"Total series fetched: {len(series_list)}")
+    for i in range(0, len(series_list), limit):
+        batch = series_list[i:i + limit]
+        logging.info(f"Processing series batch {i//limit + 1}")
+        series_file_path = os.path.join(source_folder, f"batch_{i//limit + 1}.csv")
+        df = pd.DataFrame(batch)
+        df['source_tag'] = tag_source_name
+        df.to_csv(series_file_path, index=False)
+        logging.info(f"Saved series batch {i//limit + 1} to {series_file_path}")
+
+def combine_batches_to_dataframe(source_folder):
+    """
+    Combine all batch CSV files in the given source folder into one DataFrame and print df.head().
+    
+    Parameters:
+    source_folder (str): The folder containing the batch CSV files.
+    
+    Returns:
+    pd.DataFrame: Combined DataFrame.
+    """
+    logging.info(f"Combining batch CSV files in folder: {source_folder}")
+    all_files = [os.path.join(source_folder, f) for f in os.listdir(source_folder) if f.endswith('.csv')]
+    df_list = [pd.read_csv(file) for file in all_files]
+    combined_df = pd.concat(df_list, ignore_index=True)
+    logging.info("Combined DataFrame head:")
+    print(combined_df.head())
+    return combined_df
+
+def combine_all_source_csv():
+    """
+    Combine all individual CSV files under each source folder into one final CSV file.
+    """
+    source_base_folder = os.path.join('data', 'series', 'source')
+    all_files = []
+    
+    for source_name in os.listdir(source_base_folder):
+        source_folder = os.path.join(source_base_folder, source_name)
+        if os.path.isdir(source_folder):
+            all_files.extend([os.path.join(source_folder, f) for f in os.listdir(source_folder) if f.endswith('.csv')])
+    
+    if all_files:
+        df_list = [pd.read_csv(file) for file in all_files]
+        final_combined_df = pd.concat(df_list, ignore_index=True)
+        final_combined_file_path = os.path.join(source_base_folder, "all_sources_combined.csv")
+        final_combined_df.to_csv(final_combined_file_path, index=False)
+        logging.info(f"All sources combined CSV saved to {final_combined_file_path}")
+
+def main():
+    tags_file_path = os.path.join('data', 'source_tags', 'source_tags.csv')
+    source_tags_df = pd.read_csv(tags_file_path)
+    # source_tags_df = source_tags_df.loc[source_tags_df['name'] == 'irs']
+    
+    # for _, row in source_tags_df.iterrows():
+    #     source_name = row['name']
+    #     fetch_series_with_offset(source_name)
+
+    combine_all_source_csv()
+
+   
+if __name__ == '__main__':
+    main()
+
+
+./fetch_source_tags.py
+import os
+import requests
+import logging
+import pandas as pd
+from config import FRED_API_KEY
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def fetch_source_tags():
+    """
+    Fetch all source tags from the FRED API and store them in the data/source_tags folder.
+    """
+    logging.info("Fetching all source tags from the FRED API")
+    url = f"https://api.stlouisfed.org/fred/tags?api_key={FRED_API_KEY}&file_type=json&tag_group_id=src"
+    logging.info(f"Requesting URL: {url}")
+    response = requests.get(url)
+    logging.info(f"Received response with status code: {response.status_code}")
+    data = response.json()
+    tags = data['tags']
+    
+    tags_folder = 'data/source_tags'
+    if not os.path.exists(tags_folder):
+        os.makedirs(tags_folder)
+    
+    tags_df = pd.DataFrame(tags)
+    tags_file_path = os.path.join(tags_folder, 'source_tags.csv')
+    tags_df.to_csv(tags_file_path, index=False)
+    logging.info(f"Saved source tags to {tags_file_path}")
+    
+    logging.info(f"All source tags have been saved to {tags_file_path}")
+
+if __name__ == '__main__':
+    fetch_source_tags()
+
+
+./fred_series_list_download.py
+import requests
+import pandas as pd
+import config
+
+# Replace with your FRED API key
+api_key = config.FRED_API_KEY
+
+from fredapi import Fred
+fred = Fred(api_key=api_key)
+
+categories_file = './data/sources/sources.csv'
+df_cat = pd.read_csv(categories_file)
+
+print(df_cat.shape)
+
+
+./combine_py_files.py
+import os
+
+def combine_py_files(base_folder, output_file):
+    with open(output_file, 'w') as outfile:
+        for root, _, files in os.walk(base_folder):
+            for file in files:
+                if file.endswith('.py'):
+                    file_path = os.path.join(root, file)
+                    outfile.write(f"{file_path}\n")
+                    with open(file_path, 'r') as infile:
+                        outfile.write(infile.read())
+                    outfile.write("\n\n")
+
+if __name__ == "__main__":
+    base_folder = "./"
+    output_file = "combined_files.txt"
+    combine_py_files(base_folder, output_file)
+
+
+./fetch_series_by_source.py
+import os
+import time
+import requests
+import pandas as pd
+import logging
+from config import FRED_API_KEY
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def fetch_series_by_source(tag_source_name, limit=50):
+    """
+    Fetch series for a given source from the FRED API and store them in separate CSV files.
+    
+    Parameters:
+    tag_source_name (str): The name of the source.
+    limit (int): The maximum number of series to fetch.
+    """
+    logging.info(f"Starting to fetch series for source: {tag_source_name}")
+    url = f"https://api.stlouisfed.org/fred/series/search?tag={tag_source_name}&api_key={FRED_API_KEY}&file_type=json&limit={limit}"
+    logging.info(f"Requesting URL: {url}")
+    response = requests.get(url)
+    logging.info(f"Received response with status code: {response.status_code}")
+    data = response.json()
+    series_list = data.get('seriess', [])
+
+    offset = 0
+    
+    source_folder = os.path.join('data', 'series', 'source', tag_source_name)
+    if not os.path.exists(source_folder):
+        os.makedirs(source_folder)
+    
+    logging.info(f"Total series fetched: {len(series_list)}")
+    for i, series in enumerate(series_list):
+        logging.info(f"Processing series {i+1}/{len(series_list)}: {series['id']}")
+        series_id = series['id']
+        series_file_path = os.path.join(source_folder, f"{i+1}.csv")
+        df = pd.DataFrame([series])
+        df.to_csv(series_file_path, index=False)
+        logging.info(f"Saved series {series_id} to {series_file_path}")
+        time.sleep(0.5)  # Sleep to avoid hitting API rate limits
+
+def main():
+    tags_file_path = os.path.join('data', 'source_tags', 'source_tags.csv')
+    source_tags_df = pd.read_csv(tags_file_path)
+    source_tags_df = source_tags_df.loc[source_tags_df['name'] == 'irs']
+    
+    for _, row in source_tags_df.iterrows():
+        source_name = row['name']
+        fetch_series_by_source(source_name)
+
+if __name__ == '__main__':
+    main()
+
+
+./streamlit_app.py
+import os
+import json
+import logging
+from datetime import datetime
+
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import plotly.io as pio
+from streamlit_plotly_events import plotly_events
+
+from fred_metadata import fetch_all_series_metadata
+from fred_data_downloader import (
+    fetch_series_info,
+    fetch_series_tags,
+    save_data_to_csv,
+    fetch_fred_data
+)
+from visualizations import plot_time_series, plot_category_sunburst
+from utils import load_category_data, load_data, call_openai
+
+pio.templates.default = "plotly_dark"
+
+# Set the Streamlit layout to use the full width
+st.set_page_config(layout="wide")
+
+# Title and subtitle
+st.markdown("## :world_map: Freddy's Insights")
+st.markdown("### Explore and visualize FRED data series")
+st.markdown("**FRED (Federal Reserve Economic Data)** is a comprehensive collection of economic data from various sources. Use this tool to explore and visualize different data series.")
+
+# Create the layout with different sections
+top_left_col, top_mid_col, top_right_col = st.columns([1, 1, 1])
+bottom_left_col, bottom_right_col = st.columns([1, 3])
+
+data_file = './data/categories/categories_20240615145115.csv'
+df = load_category_data(data_file)
+    
+with top_left_col:
+    st.subheader("1. Select a FRED category", divider='rainbow')
+    fig = plot_category_sunburst(data_file)
+    selected_points = plotly_events(fig, click_event=True, select_event=True)
+
+with top_mid_col:
+    st.subheader("2. Popular series for selected category", divider='rainbow')
+    if selected_points and 'pointNumber' in selected_points[0]:
+        selected_id = selected_points[0]['pointNumber']
+        # Perform downstream actions with the selected ID
+        filtered_data = df[df.index == selected_id]
+        print(filtered_data)
+
+        # Fetch series metadata for the selected category
+        selected_category_id = filtered_data['id'].values[0]
+        series_metadata = fetch_all_series_metadata(selected_category_id, limit=20)
+        if series_metadata is not None:
+            # Display the series metadata in a clean table
+            st.session_state.series_id_selection = st.dataframe(
+                series_metadata, 
+                hide_index=True,
+                on_select="rerun",
+                selection_mode="single-row"
+            )
+
+            if 'series_id_selection' in st.session_state:
+                if st.session_state.series_id_selection['selection']['rows']:
+                    row_num = st.session_state.series_id_selection['selection']['rows'][0]
+                    selected_series_id = series_metadata.iloc[row_num]['id']
+                    series_info = fetch_series_info(selected_series_id)
+                    series_tags = fetch_series_tags(selected_series_id)
+                    # explanation = get_series_explanation(series_info)
+                    # st.subheader("Series Explanation")
+                    # st.write(explanation)
+
+
+
+with top_right_col:
+    st.subheader("3. Get help understanding the series", divider='rainbow')
+    if 'series_id_selection' in st.session_state and \
+        st.session_state.series_id_selection['selection']['rows'] and \
+            selected_points and 'pointNumber' in selected_points[0]:
+        # Generate user prompt
+        user_prompt = f"""Explain the following series that was collected from FRED's data portal:\n\
+            Series Info: {series_info}\n\n\
+            Tags: {series_tags}\n\n\
+            Provide a brief explanation of what this series means, \
+            where it was sourced from, and talk about it\'s significance (in bullets only) \
+            and what kind of insights we can derive from it. Keep it less than 300 words"""
+        with st.container(height=430):
+            # Display user prompt in an editable text box
+            with st.expander("Use this query to have the LLM explain selected series", expanded=True):
+                user_prompt = st.text_area("Edit the user prompt below:", user_prompt, height=200)
+            
+                # with st.expander("LLM's series explanation", expanded=False):
+                    # Add a button to generate the OpenAI-driven explanation
+            if st.button("Generate Explanation"):
+                logging.info("Calling OpenAI API for series explanation")
+                explanation = call_openai(user_prompt, model_name="gpt-4o")
+                logging.info("Received explanation from OpenAI API")
+                st.subheader("Series Explanation")
+                st.markdown(explanation, )
+
+
+with bottom_left_col:
+    st.subheader("4. Input series for plotting", divider='rainbow')
+    with st.container(height=500):
+        # Input fields for series_id, start_date, and end_date
+        if 'series_id_selection' in st.session_state:
+            if st.session_state.series_id_selection['selection']['rows']:
+                id = selected_series_id
+                series_id = st.text_input("Enter Series ID", value=id)
+        else:
+            series_id = st.text_input("Enter Series ID")
+        start_date = st.date_input("Start Date", value=datetime(2000, 1, 1), help="Select the start date (YYYY/MM/DD)")
+        end_date = st.date_input("End Date", value=datetime.today(), help="Select the end date (YYYY/MM/DD)")
+
+        if 'series_id_selection' in st.session_state:
+            if st.session_state.series_id_selection['selection']['rows']:
+                data_folder = 'data/series_data'
+                data_file = os.path.join(data_folder, f"{selected_series_id}.csv")
+                
+                series_info_file = os.path.join('data/series_info', f"{selected_series_id}.json")
+                
+                if os.path.exists(series_info_file):
+                    logging.info(f"Loading series info for series_id: {selected_series_id} from local file: {series_info_file}")
+                    with open(series_info_file, 'r') as file:
+                        series_info = json.load(file)
+                else:
+                    logging.info(f"Fetching series info for series_id: {selected_series_id} from FRED API")
+                    series_info = fetch_series_info(series_id)
+                
+                if not os.path.exists(data_file):
+                    df = fetch_fred_data(selected_series_id, start_date, end_date, series_info)
+                    save_data_to_csv(df, selected_series_id, data_folder)
+                else:
+                    logging.info(f"Loading data for series_id: {selected_series_id} from local file: {data_file}")
+                    df = load_data(data_file)
+                
+                if 'notes' not in series_info:
+                    series_info['notes'] = ''
+                st.markdown("#### Series information")
+                st.markdown(f"<p style='font-size: 16px; color: grey;'><strong>Title:</strong> <span style='color: darkgrey;'>{series_info['title']}</span></p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='font-size: 16px; color: grey;'><strong>Frequency:</strong> <span style='color: darkgrey;'>{series_info['frequency']}</span></p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='font-size: 16px; color: grey;'><strong>Notes:</strong> <span style='color: darkgrey;'>{series_info['notes']}</span></p>", unsafe_allow_html=True)
+
+
+with bottom_right_col:
+    st.subheader("5. Visualize the trend", divider='rainbow')
+    with st.container(height=500):
+        if 'series_id_selection' in st.session_state:
+            if st.session_state.series_id_selection['selection']['rows']:
+                fig = plot_time_series(data_file)
+                if fig is None:
+                    logging.info(f"No data returned for series_id: {series_id} for the given time period")
+                    st.write('No data returned for series for given time period')
+                else:
+                    st.plotly_chart(fig, use_container_width=True)
+
+
+
+./visualizations.py
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from utils import load_category_data
+import streamlit as st
+
+def plot_time_series(data_file, output_file=None):
+    """
+    Plots an interactive line chart for a given time series data file.
+    
+    Parameters:
+    data_file (str): Path to the CSV file containing the time series data.
+    
+    Returns:
+    plotly.graph_objects.Figure: The Plotly figure object for the time series plot.
+    """
+    # Load the data
+    df = pd.read_csv(data_file)
+    
+    # Create the line chart
+    if df.shape[0] == 0:
+        return None
+    fig = px.line(df, x='date', y='value', title=df['title'][0])
+    
+    # Add tooltips with text limited to 50 characters
+    if 'notes' not in df.columns:
+        df['notes'] = ''
+    df['notes'] = df['notes'].str.wrap(50).apply(lambda x: x.replace('\n', '<br>'))
+
+    # Add descriptive elements
+    fig.update_traces(mode='lines+markers')
+    fig.update_layout(
+        xaxis_title='Date',
+        yaxis_title=df['units'][0],
+        hovermode='x unified'
+    )
+    
+    fig.update_traces(
+        hovertemplate='<b>Date</b>: %{x}<br><b>Value</b>: %{y}<br>' +
+                      '<b>ID</b>: %{customdata[0]}<br><b>Title</b>: %{customdata[1]}<br>' +
+                      '<b>Frequency</b>: %{customdata[2]}<br><b>Units</b>: %{customdata[3]}<br>' +
+                      '<b>Last Updated</b>: %{customdata[4]}<br><b>Notes</b>: %{customdata[5]}<extra></extra>',
+        customdata=df[['id', 'title', 'frequency', 'units', 'last_updated', 'notes']].values
+    )
+    
+    # Add time slider
+    fig.update_layout(
+        xaxis=dict(
+            rangeselector=dict(
+                buttons=list([
+                    dict(count=1, label="1m", step="month", stepmode="backward"),
+                    dict(count=6, label="6m", step="month", stepmode="backward"),
+                    dict(count=1, label="YTD", step="year", stepmode="todate"),
+                    dict(count=1, label="1y", step="year", stepmode="backward"),
+                    dict(step="all")
+                ])
+            ),
+            rangeslider=dict(visible=True),
+            type="date"
+        )
+    )
+    
+    if output_file:
+        fig.write_html(output_file)
+    else:
+        return fig
+
+def plot_category_sunburst(data_file, output_file=None):
+
+    df = load_category_data(data_file)
+
+    # Create the sunburst chart
+    fig = px.sunburst(
+        df,
+        ids='id',
+        parents='parent_id',
+        names='name',
+        values='count',  # Use 'count' to represent the number of categories at each level
+        hover_data={'id': True, 'notes': True, 'level': True, 'count': True},
+    )
+
+    fig.update_layout(
+        margin=dict(t=30, l=0, r=0, b=0),
+        hovermode='closest',
+        width=420,  # Set the width of the chart
+        height=420, # Set the height of the chart
+    )
+
+    fig.update_traces(
+        hovertemplate='<b>Category</b>: %{label}<br>' +
+                    '<b>ID</b>: %{customdata[0]}<br>' +
+                    '<b>Notes</b>: %{customdata[1]}<br>' +
+                    '<b>Level</b>: %{customdata[2]}<br>' +
+                    '<b>Sub-categories</b>: %{customdata[3]}<extra></extra>',
+        customdata=df[['id', 'notes', 'level', 'count']].values
+    )
+
+    if output_file:
+        fig.write_html(output_file)
+    else:
+        return fig
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Plot time series data.")
+    parser.add_argument("--data_file", type=str, help="Path to the CSV file containing the time series data.")
+    parser.add_argument("--output_file", type=str, help="Path to save the HTML file of the plot.", default=None)
+
+    args = parser.parse_args()
+
+    plot_time_series(args.data_file, args.output_file)
+
+
+./fred_metadata.py
+import requests
+import os
+import json
+from datetime import datetime
+import logging
+import pandas as pd
+import config
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def fetch_all_series_metadata(category_id, api_key=config.FRED_API_KEY, limit=20):
+    # Define the metadata folder and file path
+    metadata_folder = os.path.join("data", "metadata_series")
+    if not os.path.exists(metadata_folder):
+        os.makedirs(metadata_folder)
+    csv_file_path = os.path.join(metadata_folder, f"{category_id}.csv")
+
+    # Check if the file already exists
+    if os.path.exists(csv_file_path):
+        logging.info(f"File {csv_file_path} already exists. Loading data from file.")
+        try:
+            df_series_metadata = pd.read_csv(csv_file_path)
+        except:
+            df_series_metadata = None
+    else:
+        logging.info(f"File {csv_file_path} does not exist. Fetching data from API.")
+        base_url = 'https://api.stlouisfed.org/fred/category/series'
+        params = {
+            'api_key': api_key,
+            'category_id': category_id,
+            'file_type': 'json',
+            'order_by': 'popularity',
+            'limit': limit,
+            'sort_order': 'desc'
+        }
+        
+        response = requests.get(base_url, params=params)
+        response.raise_for_status()
+        
+        data = response.json()
+        series_list = data['seriess']
+        
+        # Save the series metadata to a CSV file
+        df_series_metadata = pd.json_normalize(series_list)
+        df_series_metadata.to_csv(csv_file_path, index=False)
+    
+    return df_series_metadata
+
+
+if __name__ == "__main__":
+    pass
+
+
+./fred_categories.py
+import requests
+import os
+import logging
+import pandas as pd
+from datetime import datetime
+import time
+from config import FRED_API_KEY
+import argparse
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def fetch_all_categories(api_key, max_depth=1):
+    """
+    Fetches all categories from the FRED API.
+
+    Parameters:
+    api_key (str): Your FRED API key.
+
+    Returns:
+    list: A list of dictionaries containing category IDs and names.
+    """
+    base_url = 'https://api.stlouisfed.org/fred/category/children'
+    params = {
+        'api_key': api_key,
+        'file_type': 'json'
+    }
+    
+    def fetch_child_categories(category_id, parent_name, current_depth):
+        params['category_id'] = category_id
+        logging.info(f"Making API request to {base_url} with params: {params}")
+        response = requests.get(base_url, params=params)
+        logging.info(f"Received response with status code: {response.status_code}")
+        response.raise_for_status()
+        
+        data = response.json()
+        categories = data['categories']
+        for category in categories:
+            category['parent_id'] = category_id
+            category['parent_name'] = parent_name
+            category['level'] = current_depth
+        return categories
+    
+    all_categories = []
+    categories_to_fetch = [(0, "Root", 1)]  # Start with the parent category ID 0, name "Root", and level 1
+    
+    while categories_to_fetch:
+        current_category_id, parent_name, current_depth = categories_to_fetch.pop()
+        if current_depth > max_depth:
+            continue
+        child_categories = fetch_child_categories(current_category_id, parent_name, current_depth)
+        all_categories.extend(child_categories)
+        categories_to_fetch.extend([(cat['id'], cat['name'], current_depth + 1) for cat in child_categories])
+        
+        # Rate limiting: sleep for 0.6 seconds to ensure we don't exceed 100 requests per minute
+        time.sleep(0.6)
+    
+    logging.info(f"Fetched {len(all_categories)} categories from the API")
+    
+    return all_categories
+
+if __name__ == "__main__":
+    logging.info("Starting category fetch script")
+    parser = argparse.ArgumentParser(description="Fetch all categories from FRED.")
+    parser.add_argument("--max_depth", type=int, default=1, help="The maximum depth to fetch categories. Default is 1.")
+    args = parser.parse_args()
+
+    categories = fetch_all_categories(api_key=FRED_API_KEY, max_depth=args.max_depth)
+
+    # Create the data/categories folder if it doesn't exist
+    categories_folder = os.path.join("data", "categories")
+    logging.info(f"Saving categories to folder: {categories_folder}")
+    if not os.path.exists(categories_folder):
+        os.makedirs(categories_folder)
+
+    # Create a timestamped filename
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    file_path = os.path.join(categories_folder, f"categories_{timestamp}.json")
+
+    # Convert the categories to a DataFrame and save it as a CSV file
+    df = pd.json_normalize(categories)
+    csv_file_path = os.path.join(categories_folder, f"categories_{timestamp}.csv")
+    df.to_csv(csv_file_path, index=False)
+
+    logging.info(f"Categories saved to {csv_file_path}")
+
+
+./utils.py
+import pandas as pd
+import logging
+from openai import OpenAI
+import config
+
+def load_data(file_path):
+    """
+    Loads data from a CSV file.
+    
+    Parameters:
+    file_path (str): Path to the CSV file.
+    
+    Returns:
+    pd.DataFrame: DataFrame containing the loaded data.
+    """
+    logging.info(f"Loading data from file: {file_path}")
+    return pd.read_csv(file_path)
+
+def load_category_data(data_file):
+    df = pd.read_csv(data_file)
+    df = df.fillna('')
+    df['notes'] = df['notes'].str.wrap(50).apply(lambda x: x.replace('\n', '<br>'))
+    df = df.fillna('')
+    df['id'] = df['id'].astype(str)
+    df['parent_id'] = df['parent_id'].astype(str)
+    df['parent_id'] = df['parent_id'].replace('0', 'All categories')
+    df['count'] = 1
+
+    unique_ids = set(df['id'])
+    df['parent_id'] = df['parent_id'].apply(lambda x: x if x in unique_ids or x == 'All categories' else 'All categories')
+
+    logging.info(f"Loaded category data from file: {data_file}")
+    return df
+
+def call_openai(user_prompt, model_name='gpt-4o', system_prompt=None, max_tokens=500):
+    """
+    Function to call OpenAI API and get a response.
+
+    Parameters:
+    model_name (str): The name of the OpenAI model to use.
+    user_prompt (str): The prompt to send to the model.
+    system_prompt (str): An optional system prompt to provide context.
+    max_tokens (int): The maximum number of tokens to generate.
+
+    Returns:
+    str: The response from the OpenAI model.
+    """
+    logging.info("Initializing OpenAI client")
+    client = OpenAI(
+        api_key=config.OPENAI_API_KEY,
+    )
+    
+    logging.info("Sending request to OpenAI API")
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": user_prompt,
+            }
+        ],
+        model=model_name,
+        max_tokens=max_tokens
+    )
+
+    response = chat_completion.choices[0].message.content
+    logging.info("Received response from OpenAI API")
+    return response
+
+import tiktoken
+
+def count_tokens(text, model_name="gpt-4"):
+    # Initialize the encoder for the specified model
+    encoder = tiktoken.encoding_for_model(model_name)
+
+    # Encode the text to get the tokens
+    tokens = encoder.encode(text)
+
+    # Return the number of tokens
+    return len(tokens)
+
+def count_tokens_in_csv(file_path, model_name="gpt-4o"):
+    # Read the CSV file
+    df = pd.read_csv(file_path)
+
+    # Convert all columns to string and concatenate all data into a single string
+    text = df.astype(str).agg(' '.join, axis=1).str.cat(sep=' ')
+
+    # Initialize the encoder for the specified model
+    encoder = tiktoken.encoding_for_model(model_name)
+
+    # Encode the text to get the tokens
+    tokens = encoder.encode(text)
+
+    # Return the number of tokens
+    return len(tokens)
+
+
+if __name__ == '__main__':
+    # Example usage
+    text = pd.read_csv('./data/series/source/all_sources_combined.csv')
+    model_name = "gpt-4o"  # Change this if using a different model
+    num_tokens = count_tokens_in_csv(text, model_name)
+    
+    print(f"Number of tokens: {num_tokens}")
+
+
+
+./data_sources_downloader.py
+import os
+import json
+import requests
+import logging
+import pandas as pd
+from config import FRED_API_KEY
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def fetch_all_sources():
+    """
+    Fetch all sources of economic data from the FRED API.
+    """
+    logging.info("Fetching all sources of economic data from the FRED API")
+    url = f"https://api.stlouisfed.org/fred/sources?api_key={FRED_API_KEY}&file_type=json"
+    logging.info(f"Requesting URL: {url}")
+    response = requests.get(url)
+    logging.info(f"Received response with status code: {response.status_code}")
+    data = response.json()
+    sources = data['sources']
+    
+    sources_folder = 'data/sources'
+    if not os.path.exists(sources_folder):
+        os.makedirs(sources_folder)
+    
+    sources_file_path = os.path.join(sources_folder, 'sources.csv')
+    df = pd.DataFrame(sources)
+    df.to_csv(sources_file_path, index=False)
+    logging.info(f"Saved all sources to {sources_file_path}")
+    
+    logging.info(f"All sources have been saved to {sources_file_path}")
+
+if __name__ == '__main__':
+    fetch_all_sources()
+
+
